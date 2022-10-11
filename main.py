@@ -17,59 +17,66 @@ logger = logging_config.logging.getLogger(__name__)
 class Option(ABC):
     # Use abstract base class with this (do you need abstractmethod???)
     def __init__(self, strike, pricing_dt, expiry_dt):
+        logger.info(f"Created option at strike {strike} on expiry {expiry_dt}")
         self.strike = strike
         self.pricing_dt = pricing_dt
         self.expiry_dt = expiry_dt
-        self.time_to_maturity = (expiry_dt-pricing_dt).days/365
-        logger.info(f"Created option at strike {strike} on expiry {expiry_dt}")
+        self.time_to_maturity = (expiry_dt - pricing_dt).days / 365
 
     def d1d2(self, spot, rfr, vol) -> tuple:
-        d1 = (np.log(spot / self.strike) + (rfr + vol ** 2 / 2) * self.time_to_maturity) / (
-                vol * np.sqrt(self.time_to_maturity))
+        logger.info(f"d1 and d2 computed with following parameters: spot {spot}, rfr {rfr} and vol {vol}")
+        d1 = (
+                (np.log(spot / self.strike) + (rfr + vol ** 2 / 2) * self.time_to_maturity) /
+                (vol * np.sqrt(self.time_to_maturity))
+              )
         d2 = d1 - vol * np.sqrt(self.time_to_maturity)
         return d1, d2
 
-    @abstractmethod
-    def price(self, spot, vol, rfr) -> float:
-        time_to_maturity = self.expiry_dt - self.pricing_dt
-        pass
+    def delta(self, spot, vol, rfr, bump_level) -> float:
+        logger.info(f"Option's delta processing with the following information: "
+                    f"spot {spot}, rfr {rfr}, vol {vol}, bump_level {bump_level}")
+        spot_up, spot_dn = spot * (1 + bump_level), spot * (1 - bump_level)
+        return (self.price(spot_up, vol, rfr) - self.price(spot_dn, vol, rfr)) / (spot_up - spot_dn)
 
     @abstractmethod
-    def delta(self, spot, vol, rfr, bump_level) -> float:
+    def price(self, spot, vol, rfr) -> float:
         pass
 
 
 class PutOption(Option):
     # No init and minial information needed
     def __init__(self, strike, pricing_dt, expiry_dt):
+        logger.info(f"PutOption class created: strike {strike}, pricing_dt {pricing_dt}, expiry_dt {expiry_dt}")
         super().__init__(strike, pricing_dt, expiry_dt)
 
-    def price(self, spot, vol, rfr):
-        d_param = self.d1d2(spot, rfr, vol)
-        d1, d2 = d_param[0], d_param[1]
+    def price(self, spot, vol, rfr) -> float:
+        logger.info(f"PutOption.price processing with the following information: spot {spot}, rfr {rfr}, vol {vol}")
+        d1, d2 = self.d1d2(spot, rfr, vol)
         return norm.cdf(-d2) * self.strike * np.exp(-rfr * self.time_to_maturity) - norm.cdf(-d1) * spot
 
-    def delta(self, spot, vol, rfr, bump_level):
-        # return self.d1d2(spot, rfr, vol)[0] - 1
-        spot_up = spot * (1+bump_level)
-        spot_dn = spot * (1-bump_level)
-        return (self.price(spot_up, vol, rfr) - self.price(spot_dn, vol, rfr)) / (spot_up-spot_dn)
+    def delta(self, spot, vol, rfr, bump_level) -> float:
+        logger.info(f"PutOption.delta processing with the following information: "
+                    f"spot {spot}, rfr {rfr}, vol {vol} and bump_leve {bump_level}")
+        return super().delta(spot, vol, rfr, bump_level)  # calling the delta function of the mother class
+
 
 class CallOption(Option):
     # No init and minial information needed
     def __init__(self, strike, pricing_dt, expiry_dt):
+        logger.info(f"CallOption class created: strike {strike}, pricing_dt {pricing_dt}, expiry_dt {expiry_dt}")
         super().__init__(strike, pricing_dt, expiry_dt)
 
-    def price(self, spot, vol, rfr):
-        d_param = self.d1d2(spot, rfr, vol)
-        d1, d2 = d_param[0], d_param[1]
+    def price(self, spot, vol, rfr) -> float:
+        logger.info(f"CallOption.price processing with the following information: spot {spot}, rfr {rfr}, vol {vol}")
+        d1, d2 = self.d1d2(spot, rfr, vol)
         return norm.cdf(d1) * spot - norm.cdf(d2) * self.strike * np.exp(-rfr * self.time_to_maturity)
 
-    def delta(self, spot, vol, rfr, bump_level):
+    def delta(self, spot, vol, rfr, bump_level) -> float:
+        logger.info(f"CallOption.delta processing with the following information: "
+                    f"spot {spot}, rfr {rfr}, vol {vol} and bump_leve {bump_level}")
         # return self.d1d2(spot, rfr, vol)[0]
-        spot_up = spot * (1+bump_level)
-        spot_dn = spot * (1-bump_level)
-        return (self.price(spot_up, vol, rfr) - self.price(spot_dn, vol, rfr)) / (spot_up-spot_dn)
+        return super().delta(spot, vol, rfr, bump_level)  # calling the delta function of the mother class
+
 
 def main():
     obj = PutOption(strike=100, pricing_dt=datetime.date(2022, 10, 11), expiry_dt=datetime.date(2023, 10, 11))
@@ -78,6 +85,7 @@ def main():
     print(obj.delta(spot=100, vol=0.2, rfr=0.05, bump_level=0.01))
     print(obj2.price(spot=100, vol=0.2, rfr=0.05))
     print(obj2.delta(spot=100, vol=0.2, rfr=0.05, bump_level=0.01))
+
 
 if __name__ == "__main__":
     main()
