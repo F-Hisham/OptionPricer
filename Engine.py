@@ -1,5 +1,4 @@
 import logging_config
-import scipy.stats
 import numpy as np
 from abc import ABC, abstractmethod
 from scipy.stats import norm as norm
@@ -8,15 +7,17 @@ logger = logging_config.logging.getLogger(__name__)
 
 
 class Engine(ABC):
-    def __init__(self):
-        pass
 
     @abstractmethod
-    def engine_price(self, spot, strike, rfr, time_to_maturity, vol, call_or_put, steps=100, num_path=10000) -> float:
+    def engine_price(self, spot, strike, rfr, time_to_maturity, vol, call_or_put) -> float:
         pass
 
 
 class BlackScholes(Engine):
+
+    def __init__(self):
+        pass
+
     def d1(self, spot, rfr, vol, strike, time_to_maturity) -> float:
         logger.info(
             f"d1 computed with following parameters: "
@@ -30,7 +31,7 @@ class BlackScholes(Engine):
         return self.d1(spot=spot, rfr=rfr, vol=vol, strike=strike, time_to_maturity=time_to_maturity) - vol * np.sqrt(
             time_to_maturity)
 
-    def engine_price(self, spot, strike, rfr, time_to_maturity, vol, call_or_put, steps=100, num_path=10000) -> float:
+    def engine_price(self, spot, strike, rfr, time_to_maturity, vol, call_or_put) -> float:
         logger.info(
             f"BS method processing using the following parameters: "
             f"spot {spot}, rfr {rfr}, vol {vol}, time_to_maturity {time_to_maturity} and strike {strike}")
@@ -43,22 +44,51 @@ class BlackScholes(Engine):
 
 
 class MonteCarlo(Engine):
-    def paths(self, spot, strike, rfr, time_to_maturity, vol, steps=100, num_path=10000) -> np.ndarray:
-        dt = time_to_maturity / steps
+    def __init__(self, steps=100, num_path=10000):
+        self.steps = steps
+        self.num_path = num_path
+
+    def paths(self, spot, rfr, time_to_maturity, vol) -> np.ndarray:
+        dt = time_to_maturity / self.steps
         return np.exp(np.log(spot) +
                       np.cumsum(((rfr - vol ** 2 / 2) * dt +
-                                 vol * np.sqrt(dt) * np.random.normal(size=(steps, num_path))), axis=0))
+                                 vol * np.sqrt(dt) * np.random.normal(size=(self.steps, self.num_path))), axis=0))
 
-    def engine_price(self, spot, strike, rfr, time_to_maturity, vol, call_or_put, steps=100, num_path=10000) -> float:
+    def engine_price(self, spot, strike, rfr, time_to_maturity, vol, call_or_put) -> float:
         logger.info(
             f"MC method processing using the following parameters: "
             f"spot {spot}, rfr {rfr}, vol {vol}, time_to_maturity {time_to_maturity}, "
-            f"strike {strike}, steps {steps} and num_path {num_path}")
+            f"strike {strike}, steps {self.steps} and num_path {self.num_path}")
         paths = self.paths(
-                spot=spot, strike=strike, rfr=rfr, time_to_maturity=time_to_maturity, vol=vol, steps=steps,
-                num_path=num_path
-            )
+            spot=spot, rfr=rfr, time_to_maturity=time_to_maturity, vol=vol
+        )
         if call_or_put == "call":
             return np.mean(np.maximum(paths[-1] - strike, 0)) * np.exp(-rfr * time_to_maturity)
         else:
             return np.mean(np.maximum(strike - paths[-1], 0)) * np.exp(-rfr * time_to_maturity)
+
+
+class BinomialTree:
+    def __init__(self, steps):
+        self.steps = steps
+
+    def engine_price(self, spot, strike, rfr, time_to_maturity, vol, call_or_put):
+        logger.info(
+            f"BT method processing using the following parameters: "
+            f"spot {spot}, rfr {rfr}, vol {vol}, time_to_maturity {time_to_maturity}, "
+            f"strike {strike}, steps {self.steps}")
+        dt = time_to_maturity / self.steps
+        u, d = np.exp(vol * np.sqrt(dt)), np.exp(-vol * np.sqrt(dt))  # upward and downward movements
+        p = (np.exp(rfr * dt) - d) / (u - d)  # risk neutral probability up
+        payoff = np.zeros(self.steps + 1)  # creation of the payoffs table
+
+        spot_diffusion = np.array([spot * u ** i * d ** (self.steps - i) for i in range(self.steps + 1)])
+        payoff[:] = np.maximum(spot_diffusion - strike, 0) if call_or_put == "call" else np.maximum(strike - spot_diffusion, 0)
+
+        for i in reversed(range(self.steps)):
+            payoff[:-1] = np.exp(-rfr * dt) * (p * payoff[1:] + (1 - p) * payoff[:-1])
+            spot_diffusion = spot_diffusion * u
+
+        return np.maximum(payoff, spot_diffusion - strike)[0] if call_or_put =="call" else np.maximum(payoff, strike-spot_diffusion)[0]
+
+

@@ -1,8 +1,5 @@
 import Engine
-import numpy as np
 import logging_config
-import datetime
-from scipy.stats import norm as norm
 from abc import ABC, abstractmethod
 
 logger = logging_config.logging.getLogger(__name__)
@@ -21,9 +18,9 @@ class Option(ABC):
     def option_type(self):
         pass
 
-    def price(self, spot, vol, rfr, pricing_dt, steps=100, num_path=10000) -> float:
+    def price(self, spot, vol, rfr, pricing_dt) -> float:
         return self.engine.engine_price(
-            spot=spot, vol=vol, rfr=rfr, steps=steps, num_path=num_path,
+            spot=spot, vol=vol, rfr=rfr,
             time_to_maturity=self.time_to_maturity(pricing_dt=pricing_dt), call_or_put=self.option_type, strike=self.strike
         )
 
