@@ -9,7 +9,7 @@ def main():
     expiry_dt = datetime.date(2023, 10, 11)
     # mc_engine = Engine.MonteCarlo(num_path=100000)
     # bs_engine = Engine.BlackScholes()
-    bt_engine = Engine.BinomialTree(steps=3)
+    bt_engine = Engine.BinomialTree(steps=10)
 
     # Creation of the objects
     # callbs = Options.CallOption(strike=100, expiry_dt=expiry_dt, engine=bs_engine)
@@ -28,10 +28,10 @@ def main():
     # print(callmc.delta(spot=100, vol=0.2, rfr=0.05, bump_level=0.01, pricing_dt=pricing_dt))
     # print(putmc.price(spot=100, vol=0.2, rfr=0.05, pricing_dt=pricing_dt))
     # print(putmc.delta(spot=100, vol=0.2, rfr=0.05, bump_level=0.01, pricing_dt=pricing_dt))
-    print(callbt.price(spot=100, vol=0.2, rfr=0.05, pricing_dt=pricing_dt))
-    print(callbt.delta(spot=100, vol=0.2, rfr=0.05, bump_level=0.01, pricing_dt=pricing_dt))
-    print(putbt.price(spot=110, vol=0.2, rfr=0.05, pricing_dt=pricing_dt))
-    print(putbt.delta(spot=110, vol=0.2, rfr=0.05, bump_level=0.01, pricing_dt=pricing_dt))
+    print(callbt.price(spot=120, vol=0.2, rfr=0.05, pricing_dt=pricing_dt))
+    print(callbt.delta(spot=120, vol=0.2, rfr=0.05, bump_level=0.01, pricing_dt=pricing_dt))
+    print(putbt.price(spot=120, vol=0.2, rfr=0.05, pricing_dt=pricing_dt))
+    print(putbt.delta(spot=120, vol=0.2, rfr=0.05, bump_level=0.01, pricing_dt=pricing_dt))
 
 if __name__ == "__main__":
     main()
