@@ -30,8 +30,8 @@ def main():
     # print(putmc.delta(spot=100, vol=0.2, rfr=0.05, bump_level=0.01, pricing_dt=pricing_dt))
     print(callbt.price(spot=100, vol=0.2, rfr=0.05, pricing_dt=pricing_dt))
     print(callbt.delta(spot=100, vol=0.2, rfr=0.05, bump_level=0.01, pricing_dt=pricing_dt))
-    print(putbt.price(spot=100, vol=0.2, rfr=0.05, pricing_dt=pricing_dt))
-    print(putbt.delta(spot=100, vol=0.2, rfr=0.05, bump_level=0.01, pricing_dt=pricing_dt))
+    print(putbt.price(spot=110, vol=0.2, rfr=0.05, pricing_dt=pricing_dt))
+    print(putbt.delta(spot=110, vol=0.2, rfr=0.05, bump_level=0.01, pricing_dt=pricing_dt))
 
 if __name__ == "__main__":
     main()
