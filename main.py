@@ -16,8 +16,8 @@ def main():
     # putbs = Options.PutOption(strike=100, expiry_dt=expiry_dt, engine=bs_engine)
     # callmc = Options.CallOption(strike=100, expiry_dt=expiry_dt, engine=mc_engine)
     # putmc = Options.PutOption(strike=100, expiry_dt=expiry_dt, engine=mc_engine)
-    callbt = Options.CallOption(strike=100, expiry_dt=expiry_dt, engine=bt_engine)
-    putbt = Options.PutOption(strike=100, expiry_dt=expiry_dt, engine=bt_engine)
+    callbt = Options.CallOption(strike=135, expiry_dt=expiry_dt, engine=bt_engine)
+    putbt = Options.PutOption(strike=135, expiry_dt=expiry_dt, engine=bt_engine)
 
     # Call the methods
     # print(callbs.price(spot=100, vol=0.2, rfr=0.05, pricing_dt=pricing_dt))

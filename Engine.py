@@ -88,6 +88,7 @@ class BinomialTree:
         for i in range(self.steps):
             payoff[:-1] = np.exp(-rfr * dt) * (p * payoff[1:] + (1 - p) * payoff[:-1])
             spot_diffusion = spot_diffusion * u
+            # print(spot_diffusion)
 
         return np.maximum(payoff, spot_diffusion - strike)[0] if call_or_put =="call" else np.maximum(payoff, strike-spot_diffusion)[0]
 
