@@ -45,3 +45,8 @@ class PutOption(Option):
     @property
     def option_type(self):
         return "put"
+
+class CallOption(Option):
+    @property
+    def option_type(self):
+        return "call"
