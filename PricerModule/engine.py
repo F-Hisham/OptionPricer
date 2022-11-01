@@ -72,7 +72,7 @@ class BinomialTree:
     def __init__(self, steps):
         self.steps = steps
 
-    def engine_price(self, spot, strike, rfr, time_to_maturity, vol, call_or_put):
+    def engine_price(self, spot, strike, rfr, time_to_maturity, vol, call_or_put) -> float:
         logger.info(
             f"BT method processing using the following parameters: "
             f"spot {spot}, rfr {rfr}, vol {vol}, time_to_maturity {time_to_maturity}, "
