@@ -42,6 +42,17 @@ class BlackScholes(Engine):
         else:
             return norm.cdf(-d2) * strike * np.exp(-rfr * time_to_maturity) - norm.cdf(-d1) * spot
 
+    def iv_newtonraphson(self, spot, strike, vol, rfr, pricing_dt, nb_loop, market_price, time_to_maturity) -> float:
+        sigma = 0.5
+        for i in range(nb_loop):
+
+            bs_price = self.engine_price(spot=spot, vol=vol, rfr=rfr, pricing_dt=pricing_dt)
+            diff = market_price - bs_price
+            vega = spot * self.d1(spot=spot, rfr=rfr, vol=vol, strike=strike, time_to_maturity=time_to_maturity) * np.sqrt(self.time)
+            if abs(diff) < 0.01:
+                return sigma
+            sigma += diff / vega
+        return sigma
 
 class MonteCarlo(Engine):
     def __init__(self, steps=100, num_path=10000):

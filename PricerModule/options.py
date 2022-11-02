@@ -3,6 +3,7 @@ import logging_config
 from abc import ABC, abstractmethod
 import PricerModule.engine as engine
 import globalattributes as ga
+from numpy import sqrt
 
 logger = logging_config.logging.getLogger(__name__)
 
@@ -19,10 +20,11 @@ class Option(ABC):
         pass
 
     def price(self, spot, vol, rfr, pricing_dt) -> float:
-        self.pricing_type()
+        self.pricing_type()  # Initialisation of global attributes
         return ga.engine.engine_price(
             spot=spot, vol=vol, rfr=rfr,
-            time_to_maturity=self.time_to_maturity(pricing_dt=pricing_dt), call_or_put=ga.option_type, strike=self.strike
+            time_to_maturity=self.time_to_maturity(pricing_dt=pricing_dt), call_or_put=ga.option_type,
+            strike=self.strike
         )
 
     def time_to_maturity(self, pricing_dt) -> float:

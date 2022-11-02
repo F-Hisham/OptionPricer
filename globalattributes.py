@@ -6,4 +6,5 @@ from PricerModule import engine
 class GlobalAttributes:
     option_type: str
     engine: engine
-    path_steps: int
+    path_steps: int = 100
+
