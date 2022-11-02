@@ -49,28 +49,28 @@ class PutBS(Option):
 
 
 class CallMC(Option):
-    def pricing_type(self, path_steps):
+    def pricing_type(self, path_steps:int):
         ga.option_type = 'Call'
         ga.path_steps = path_steps
         ga.engine = engine.MonteCarlo(num_path=ga.path_steps)
 
 
 class PutMC(Option):
-    def pricing_type(self, path_steps):
+    def pricing_type(self, path_steps:int):
         ga.option_type = 'Put'
         ga.path_steps = path_steps
         ga.engine = engine.MonteCarlo(num_path=ga.path_steps)
 
 
 class CallBT(Option):
-    def pricing_type(self, path_steps):
+    def pricing_type(self, path_steps:int):
         ga.option_type = 'Call'
         ga.path_steps = path_steps
         ga.engine = engine.engine.BinomialTree(steps=ga.path_steps)
 
 
 class PutBT(Option):
-    def pricing_type(self, path_steps):
+    def pricing_type(self, path_steps:int):
         ga.option_type = 'Put'
         ga.path_steps = path_steps
         ga.engine = engine.engine.BinomialTree(steps=ga.path_steps)
