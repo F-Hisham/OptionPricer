@@ -23,8 +23,7 @@ class Option(ABC):
         self.pricing_type()  # Initialisation of global attributes
         return ga.engine.engine_price(
             spot=spot, vol=vol, rfr=rfr,
-            time_to_maturity=self.time_to_maturity(pricing_dt=pricing_dt), call_or_put=ga.option_type,
-            strike=self.strike
+            time_to_maturity=self.time_to_maturity(pricing_dt=pricing_dt), strike=self.strike
         )
 
     def time_to_maturity(self, pricing_dt) -> float:
