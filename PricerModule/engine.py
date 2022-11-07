@@ -10,7 +10,7 @@ logger = logging_config.logging.getLogger(__name__)
 class Engine(ABC):
 
     @abstractmethod
-    def engine_price(self, spot, strike, rfr, time_to_maturity, vol, call_or_put) -> float:
+    def engine_price(self, spot, strike, rfr, time_to_maturity, vol) -> float:
         pass
 
 
@@ -56,7 +56,7 @@ class BlackScholes(Engine):
         return sigma
 
 class MonteCarlo(Engine):
-    def __init__(self, steps=100, num_path=10000):
+    def __init__(self, steps, num_path):
         self.steps = steps
         self.num_path = num_path
 

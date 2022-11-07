@@ -1,9 +1,7 @@
-import globalattributes
 import logging_config
 from abc import ABC, abstractmethod
 import PricerModule.engine as engine
 import globalattributes as ga
-from numpy import sqrt
 
 logger = logging_config.logging.getLogger(__name__)
 
@@ -36,41 +34,19 @@ class Option(ABC):
                 spot_up - spot_dn)
 
 
-class CallBS(Option):
-    def pricing_type(self):
-        ga.option_type = 'Call'
+class EuropeanBS(Option):
+    def pricing_type(self, call_or_put):
+        ga.option_type = call_or_put
         ga.engine = engine.BlackScholes()
 
 
-class PutBS(Option):
-    def pricing_type(self):
-        ga.option_type = 'Put'
-        ga.engine = engine.BlackScholes()
+class EuropeanMC(Option):
+    def pricing_type(self, call_or_put, steps=100, num_path=1000):
+        ga.option_type = call_or_put
+        ga.engine = engine.MonteCarlo(steps=steps, num_path=num_path)
 
 
-class CallMC(Option):
-    def pricing_type(self, path_steps:int):
-        ga.option_type = 'Call'
-        ga.path_steps = path_steps
-        ga.engine = engine.MonteCarlo(num_path=ga.path_steps)
-
-
-class PutMC(Option):
-    def pricing_type(self, path_steps:int):
-        ga.option_type = 'Put'
-        ga.path_steps = path_steps
-        ga.engine = engine.MonteCarlo(num_path=ga.path_steps)
-
-
-class CallBT(Option):
-    def pricing_type(self, path_steps:int):
-        ga.option_type = 'Call'
-        ga.path_steps = path_steps
-        ga.engine = engine.engine.BinomialTree(steps=ga.path_steps)
-
-
-class PutBT(Option):
-    def pricing_type(self, path_steps:int):
-        ga.option_type = 'Put'
-        ga.path_steps = path_steps
-        ga.engine = engine.engine.BinomialTree(steps=ga.path_steps)
+class American(Option):
+    def pricing_type(self, call_or_put, steps=100):
+        ga.option_type = call_or_put
+        ga.engine = engine.BinomialTree(steps=steps)
