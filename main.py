@@ -22,5 +22,6 @@ def main():
     print(f'call amer price is {eur.price(spot=120, vol=0.2, rfr=0.05, pricing_dt=pricing_dt)}')
     print(f'call amer delta is {eur.delta(spot=120, vol=0.2, rfr=0.05, bump_level=0.01, pricing_dt=pricing_dt)}')
 
+
 if __name__ == "__main__":
     main()
