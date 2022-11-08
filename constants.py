@@ -3,7 +3,7 @@ from PricerModule import engine
 
 
 @dataclass
-class GlobalAttributes:
-    option_type: str
-    engine: engine
+class OptionTypes:
+    put = "Put"
+    call = "Call"
 

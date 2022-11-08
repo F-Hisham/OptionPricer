@@ -1,6 +1,5 @@
 import logging_config
 import numpy as np
-import globalattributes as ga
 from abc import ABC, abstractmethod
 from scipy.stats import norm as norm
 
@@ -10,7 +9,7 @@ logger = logging_config.logging.getLogger(__name__)
 class Engine(ABC):
 
     @abstractmethod
-    def engine_price(self, spot, strike, rfr, time_to_maturity, vol) -> float:
+    def engine_price(self, spot, strike, rfr, time_to_maturity, vol, option_type) -> float:
         pass
 
 
@@ -32,13 +31,13 @@ class BlackScholes(Engine):
         return self.d1(spot=spot, rfr=rfr, vol=vol, strike=strike, time_to_maturity=time_to_maturity) - vol * np.sqrt(
             time_to_maturity)
 
-    def engine_price(self, spot, strike, rfr, time_to_maturity, vol) -> float:
+    def engine_price(self, spot, strike, rfr, time_to_maturity, vol, option_type) -> float:
         logger.info(
             f"BS method processing using the following parameters: "
             f"spot {spot}, rfr {rfr}, vol {vol}, time_to_maturity {time_to_maturity} and strike {strike}")
         d1 = self.d1(spot=spot, rfr=rfr, vol=vol, strike=strike, time_to_maturity=time_to_maturity)
         d2 = self.d2(spot=spot, rfr=rfr, vol=vol, strike=strike, time_to_maturity=time_to_maturity)
-        if ga.option_type == "Call":
+        if option_type == "Call":
             return norm.cdf(d1) * spot - norm.cdf(d2) * strike * np.exp(-rfr * time_to_maturity)
         else:
             return norm.cdf(-d2) * strike * np.exp(-rfr * time_to_maturity) - norm.cdf(-d1) * spot
@@ -66,7 +65,7 @@ class MonteCarlo(Engine):
                       np.cumsum(((rfr - vol ** 2 / 2) * dt +
                                  vol * np.sqrt(dt) * np.random.normal(size=(self.steps, self.num_path))), axis=0))
 
-    def engine_price(self, spot, strike, rfr, time_to_maturity, vol) -> float:
+    def engine_price(self, spot, strike, rfr, time_to_maturity, vol, option_type) -> float:
         logger.info(
             f"MC method processing using the following parameters: "
             f"spot {spot}, rfr {rfr}, vol {vol}, time_to_maturity {time_to_maturity}, "
@@ -74,7 +73,7 @@ class MonteCarlo(Engine):
         paths = self.paths(
             spot=spot, rfr=rfr, time_to_maturity=time_to_maturity, vol=vol
         )
-        if ga.option_type == "Call":
+        if option_type == "Call":
             return np.mean(np.maximum(paths[-1] - strike, 0)) * np.exp(-rfr * time_to_maturity)
         else:
             return np.mean(np.maximum(strike - paths[-1], 0)) * np.exp(-rfr * time_to_maturity)
@@ -84,24 +83,31 @@ class BinomialTree:
     def __init__(self, steps):
         self.steps = steps
 
-    def engine_price(self, spot, strike, rfr, time_to_maturity, vol) -> float:
+    def engine_price(self, spot, strike, rfr, time_to_maturity, vol, option_type) -> float:
         logger.info(
             f"BT method processing using the following parameters: "
             f"spot {spot}, rfr {rfr}, vol {vol}, time_to_maturity {time_to_maturity}, "
             f"strike {strike}, steps {self.steps}")
         dt = time_to_maturity / self.steps
-        u, d = np.exp(vol * np.sqrt(dt)), np.exp(-vol * np.sqrt(dt))  # upward and downward movements
-        p = (np.exp(rfr * dt) - d) / (u - d)  # risk neutral probability up
-        payoff = np.zeros(self.steps + 1)  # creation of the payoffs table
+
+        # upward and downward movements
+        u = np.exp(vol * np.sqrt(dt))
+        d = np.exp(-vol * np.sqrt(dt))
+
+        # risk neutral probability up
+        p = (np.exp(rfr * dt) - d) / (u - d)
+
+        # creation of the payoffs table
+        payoff = np.zeros(self.steps + 1)
 
         spot_diffusion = np.array([spot * u ** i * d ** (self.steps - i) for i in range(self.steps + 1)])
-        payoff[:] = np.maximum(spot_diffusion - strike, 0) if ga.option_type == "Call" else np.maximum(strike - spot_diffusion, 0)
+        payoff[:] = np.maximum(spot_diffusion - strike, 0) if option_type == "Call" else np.maximum(strike - spot_diffusion, 0)
 
         for i in range(self.steps):
             payoff[:-1] = np.exp(-rfr * dt) * (p * payoff[1:] + (1 - p) * payoff[:-1])
             spot_diffusion = spot_diffusion * u
             # print(spot_diffusion)
 
-        return np.maximum(payoff, spot_diffusion - strike)[0] if ga.option_type == "Call" else np.maximum(payoff, strike-spot_diffusion)[0]
+        return np.maximum(payoff, spot_diffusion - strike)[0] if option_type == "Call" else np.maximum(payoff, strike-spot_diffusion)[0]
 
 
